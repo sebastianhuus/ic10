@@ -1,0 +1,19 @@
+alias ButtonInt d0
+alias ButtonMid d1
+alias ButtonExt d2
+alias DoorController d3
+
+main:
+s DoorController Setting 0
+l r0 ButtonInt Activate
+l r1 ButtonMid Activate
+l r2 ButtonExt Activate
+beq r0 1 SendSignal
+beq r1 1 SendSignal
+beq r2 1 SendSignal
+j main
+
+SendSignal:
+s DoorController Setting 1
+yield
+j main
