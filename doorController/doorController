@@ -1,0 +1,68 @@
+define extPressure 0
+define intPressure 0
+
+alias DoorExt d0
+alias DoorInt d1
+# Set door modes to logic
+s DoorExt Mode 1
+s DoorInt Mode 1
+
+alias GasSensor d2
+alias VentExt d3
+alias VentInt d4
+alias Buttons d5
+
+alias state r0 # interior state is 0 by default
+alias dbSetting r1
+alias currentPressure r2
+
+jal CycleToInt
+
+main:
+yield
+jal WaitForInput
+j main
+
+# Waits for buttons to change this setting
+WaitForInput:
+l dbSetting db Setting
+beq dbSetting 1 Cycle
+j ra
+
+# Checks state
+Cycle:
+beq state 0 CycleToExt
+beq state 1 CycleToInt
+j 0 # reset if bugged
+
+CycleToInt:
+jal CloseDoors
+s DoorExt Lock 1
+s VentExt On 1
+s VentExt Mode 1 # depressurize
+jal WaitForZeroKPA
+s VentExt On 0 #turn off vent
+s DoorInt Open 1 #open ext door
+move state 0 # Sets state to 0
+j main #goto main when done
+
+CycleToExt:
+jal CloseDoors
+s DoorExt Lock 0
+s VentInt On 1
+s VentInt Mode 1 # depressurize
+jal WaitForZeroKPA
+s VentInt On 0 #turn off vent
+s DoorExt Open 1 #open ext door
+move state 1 # Sets state to 1
+j main #goto main when done
+
+CloseDoors:
+s DoorExt Open 0
+s DoorInt Open 0
+j ra #jump to ra when done
+
+WaitForZeroKPA:
+l currentPressure GasSensor Pressure
+beq currentPressure 0 ra #jump to ra if kpa=0
+j WaitForZeroKPA #loops
