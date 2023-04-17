@@ -1,0 +1,34 @@
+alias doorExt d0
+alias doorInt d1
+alias led d2
+
+define red 4
+define yellow 5
+define white 6
+
+alias extOpen r0
+alias intOpen r1
+
+main:
+l extOpen doorExt Open
+l intOpen doorInt Open
+beqal extOpen intOpen equal
+beq extOpen 1 led.setRed
+beq intOpen 1 led.setWhite
+j main
+
+equal: # both doors are closed = cycling
+beq extOpen 0 led.setYellow
+j ra # continue if both were not equal to zero
+
+led.setRed:
+s led Color 4
+j main
+
+led.setYellow:
+s led Color 5
+j main
+
+led.setWhite:
+s led Color 6
+j main
